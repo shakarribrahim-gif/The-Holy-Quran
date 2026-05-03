@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="kmr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Noble Quran | Shakar Rasoul</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Sans+Arabic:wght@400;700&family=Poppins:wght@300;400;600&display=swap');
+
+        :root {
+            --bg: #f4f7f6; --card: #ffffff; --text: #2d3436; --accent: #1e4d2b; --gold: #c5a021; --border: #e0e0e0;
+        }
+        [data-theme="dark"] {
+            --bg: #121212; --card: #1e1e1e; --text: #e0e0e0; --accent: #52b788; --border: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; transition: background 0.3s; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 100px; }
+
+        header { 
+            background: var(--card); padding: 15px 20px; display: flex; 
+            justify-content: space-between; align-items: center; 
+            position: sticky; top: 0; z-index: 100; border-bottom: 3px solid var(--gold);
+        }
+
+        .search-container { padding: 20px; max-width: 800px; margin: auto; display: flex; gap: 10px; }
+        .search-bar { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); color: var(--text); }
+
+        .settings-panel {
+            position: fixed; top: 0; right: -320px; width: 320px; height: 100%;
+            background: var(--card); box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+            z-index: 1000; padding: 30px 20px; transition: 0.4s; overflow-y: auto;
+        }
+        .settings-panel.active { right: 0; }
+
+        .verse-card { 
+            background: var(--card); border-radius: 20px; padding: 30px; 
+            margin-bottom: 25px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .arabic { 
+            font-family: 'Amiri', serif; font-size: 2.2rem; text-align: right; 
+            direction: rtl; color: var(--accent); margin-bottom: 20px; line-height: 1.8;
+        }
+
+        .latin { font-style: italic; color: var(--gold); margin-bottom: 15px; font-size: 0.95rem; display: none; }
+        .translation { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border); line-height: 1.6; }
+        
+        .audio-controls { margin-top: 20px; display: flex; align-items: center; gap: 15px; background: var(--bg); padding: 10px; border-radius: 12px; }
+        audio { flex: 1; height: 30px; }
+
+        .font-slider { width: 100%; margin: 10px 0; }
+        .bookmark-btn { background: none; border: none; color: var(--gold); cursor: pointer; float: left; font-size: 1.2rem; }
+        
+        .footer-branding { text-align: center; margin-top: 50px; padding: 40px; background: var(--card); border-top: 1px solid var(--border); }
+    </style>
+</head>
+<body data-theme="light">
+
+<header>
+    <div>
+        <h2 style="font-family: 'Amiri'; color: var(--accent);">القرآن الكريم</h2>
+        <small style="color: var(--gold); font-weight: bold;">Built by Shakar Rasoul</small>
+    </div>
+    <div onclick="toggleSettings()" style="font-size: 1.5rem; cursor: pointer; color: var(--accent);"><i class="fas fa-cog"></i></div>
+</header>
+
+<div class="search-container">
+    <input type="text" id="searchInput" class="search-bar" placeholder="Jump to Surah:Verse (e.g. 2:255)...">
+    <button onclick="searchAyah()" style="background: var(--accent); color: white; border: none; padding: 0 20px; border-radius: 10px; cursor: pointer;">Go</button>
+</div>
+
+<div class="settings-panel" id="settingsPanel">
+    <h3 style="color: var(--accent);">Display Settings</h3>
+    <hr style="margin: 15px 0; opacity: 0.2;">
+    
+    <label>Arabic Text Size</label>
+    <input type="range" min="1.5" max="4" step="0.1" value="2.2" class="font-slider" oninput="resizeArabic(this.value)">
+
+    <div style="margin: 20px 0;">
+        <label>Theme Selection</label>
+        <select onchange="document.body.setAttribute('data-theme', this.value)" style="width: 100%; padding: 10px; border-radius: 5px; margin-top: 5px;">
+            <option value="light">Light Mode (Clean)</option>
+            <option value="dark">Dark Mode (Night)</option>
+        </select>
+    </div>
+
+    <h4 style="font-size: 0.9rem; margin-bottom: 10px; color: var(--gold);">Visibility Toggles</h4>
+    <label><input type="checkbox" id="checkLatin" onchange="updateUI()" checked> Latin Transliteration</label><br><br>
+    <label><input type="checkbox" id="checkEn" onchange="updateUI()" checked> English (Mustafa Khattab)</label><br><br>
+    <label><input type="checkbox" id="checkKu" onchange="updateUI()" checked> Central Kurdish (ئاسان)</label><br><br>
+    <label><input type="checkbox" id="checkKm" onchange="updateUI()"> Kurmanji Translation</label><br><br>
+
+    <button onclick="toggleSettings()" style="background: var(--accent); color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; margin-top: 10px; cursor: pointer;">Close & Save</button>
+</div>
+
+<div class="quran-container" id="mainContent">
+    <div class="verse-card">
+        <button class="bookmark-btn" onclick="saveBookmark('1:1')" title="Save Place"><i class="far fa-bookmark"></i></button>
+        <span class="arabic">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</span>
+        <p class="latin">Bismillaahir Rahmaanir Raheem</p>
+        
+        <div class="translation" id="en-box">
+            <small style="color:var(--gold)">THE CLEAR QURAN</small>
+            <p>In the name of Allah, the Most Compassionate, the Most Merciful.</p>
+        </div>
+
+        <div class="translation" id="ku-box">
+            <small style="color:var(--gold)">تەفسیری ئاسان</small>
+            <p style="direction: rtl; text-align: right; font-family: 'Noto Sans Arabic';">بەناوی خوای بەخشندەی میهرەبان.</p>
+        </div>
+
+        <div class="translation" id="km-box" style="display:none;">
+            <small style="color:var(--gold)">KURMANJI</small>
+            <p>Bi navê Xwedayê Dilovan ê Dilovîn.</p>
+        </div>
+
+        <div class="audio-controls">
+            <i class="fas fa-volume-up" style="color: var(--gold);"></i>
+            <audio controls preload="none">
+                <source src="https://cdn.islamic.network/quran/audio/128/ar.mahermuaiqly/1.mp3" type="audio/mpeg">
+            </audio>
+        </div>
+    </div>
+</div>
+
+<section class="footer-branding">
+    <h3 style="color: var(--accent); font-family: 'Amiri';">Website built by Shakar Rasoul</h3>
+    <p style="font-size: 0.9rem; color: var(--text); margin-top: 10px; max-width: 500px; margin-left: auto; margin-right: auto;">
+        "The best among you are those who learn the Quran and teach it."
+    </p>
+</section>
+
+<script>
+    function toggleSettings() { document.getElementById('settingsPanel').classList.toggle('active'); }
+
+    function resizeArabic(val) {
+        document.querySelectorAll('.arabic').forEach(el => el.style.fontSize = val + 'rem');
+    }
+
+    function updateUI() {
+        const latin = document.getElementById('checkLatin').checked;
+        const en = document.getElementById('checkEn').checked;
+        const ku = document.getElementById('checkKu').checked;
+        const km = document.getElementById('checkKm').checked;
+        
+        document.querySelectorAll('.latin').forEach(el => el.style.display = latin ? 'block' : 'none');
+        document.querySelectorAll('#en-box').forEach(el => el.style.display = en ? 'block' : 'none');
+        document.querySelectorAll('#ku-box').forEach(el => el.style.display = ku ? 'block' : 'none');
+        document.querySelectorAll('#km-box').forEach(el => el.style.display = km ? 'block' : 'none');
+    }
+
+    function saveBookmark(ref) {
+        localStorage.setItem('quranBookmark', ref);
+        alert("Position " + ref + " saved to your browser memory.");
+    }
+
+    function searchAyah() {
+        const val = document.getElementById('searchInput').value;
+        if(val) alert("Ready to find Surah:Verse " + val);
+    }
+
+    window.onload = () => {
+        const saved = localStorage.getItem('quranBookmark');
+        if(saved) console.log("Welcome back, Shakar. You were at: " + saved);
+        updateUI();
+    };
+</script>
+
+</body>
+</html>
